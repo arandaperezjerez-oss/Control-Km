@@ -1,0 +1,42 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "secret": {
+      "pin": {
+        ".read": false,
+        ".write": "auth != null && data.exists() && root.child('admins').child(auth.uid).val() === data.val() && newData.isString() && newData.val().matches(/^[0-9]{4,8}$/)"
+      }
+    },
+
+    "admins": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && (!newData.exists() || (root.child('secret/pin').exists() && newData.val() === root.child('secret/pin').val()))"
+      }
+    },
+
+    "projects": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null && root.child('secret/pin').exists() && root.child('admins').child(auth.uid).val() === root.child('secret/pin').val()"
+      }
+    },
+
+    "bikes": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null && root.child('secret/pin').exists() && root.child('admins').child(auth.uid).val() === root.child('secret/pin').val()"
+      }
+    },
+
+    "shifts": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null && ((root.child('secret/pin').exists() && root.child('admins').child(auth.uid).val() === root.child('secret/pin').val()) || (!data.exists() && newData.exists()))",
+        ".validate": "newData.hasChildren(['projectId', 'bikeId', 'cfg', 'trk', 'odo', 'pilot']) && newData.child('odo').isNumber() && newData.child('odo').val() > 0 && newData.child('cfg').val().matches(/^(solo|kl|bel|sozia)$/) && newData.child('trk').val().matches(/^(car|abr|end|city|hk1|berg)$/) && !(newData.child('cfg').val() === 'sozia' && newData.child('trk').val() === 'abr') && !(newData.child('trk').val() === 'hk1' && newData.child('cfg').val() !== 'solo') && root.child('bikes').child(newData.child('bikeId').val()).exists()"
+      }
+    }
+  }
+}
